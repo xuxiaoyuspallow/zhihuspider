@@ -1,4 +1,6 @@
 # coding: utf-8
+import json
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -51,8 +53,20 @@ class UserInformation(object):
         result = self.soup.find_all('div', class_='Profile-followStatusValue')[1].text
         return int(result)
 
+    def agree(self):
+        pass
 
-class Links(object):
+    def thanks(self):
+        pass
+
+    def be_collected(self):
+        pass
+
+    def logs(self):
+        pass
+
+
+class UserDetail(object):
     def __init__(self, _id):
         self.id = _id
         self.base_url = 'https://www.zhihu.com/people/{id}/'.format(id=self.id)
@@ -63,8 +77,25 @@ class Links(object):
     def followings(self):
         pass
 
-    def anwsers(self):
-        pass
+    def answers(self):
+        url = self.base_url + 'answer'
+        params = {
+            'sort_by': 'created',
+            'per_page': 5,
+            'include': 'data[*].is_normal,suggest_edit,comment_count,collapsed_counts,'
+                       'reviewing_comments_count,can_comment,voteup_count,reshipment_settings,'
+                       'comment_permission,mark_infos,created_time,updated_time,'
+                       'relationship.voting,is_author,is_thanked,is_nothelp,upvoted_followees;'
+                       'data[*].author.badge[?(type=best_answerer)].topics',
+            'limit': 5,
+            'offset': 5,
+        }
+        answer_api = 'https://www.zhihu.com/api/v4/members/{id}/answers'.format(id=self.id)
+        r = requests.get(answer_api,params=params)
+        result = json.loads(r.text)
+        assert isinstance(json.loads(r.text),dict)
+
+
 
     def posts(self):
         pass
