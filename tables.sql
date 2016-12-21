@@ -73,10 +73,9 @@ CREATE TABLE `questions_snapshots` (
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` varchar(255) DEFAULT NULL,
-  `name` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  `user_id` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`,`user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Table structure for user_snapshots
@@ -94,6 +93,7 @@ CREATE TABLE `user_snapshots` (
   `followees_num` int(11) DEFAULT NULL,
   `agrees_num` int(11) DEFAULT NULL,
   `thanks_num` int(11) DEFAULT NULL,
+  `be_marked` int(11) DEFAULT NULL,
   `be_collected_num` int(11) DEFAULT NULL,
   `edits_num` int(11) DEFAULT NULL,
   `crawl_time` datetime DEFAULT NULL,

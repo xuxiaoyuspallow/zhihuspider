@@ -22,17 +22,20 @@ class Cookies(object):
 
     def cookies(self):
         """:return dict"""
-        sql = 'select * from cookies limit 1'
+        sql = 'select cookies from manage_information limit 1'
         self.cursor.execute(sql)
-        result = self.cursor.fetchone()[4].split(';')
+        result = self.cursor.fetchone()[0].split(';')
         cookies = {}
-        cookies[result[0].split('=')[0]] = result[0].split('=')[1]
-        cookies[result[1].split('=')[0]] = result[0].split('=')[1]
-        r = requests.get(self.url, cookies=cookies, headers=self.headers)
-        soup = BeautifulSoup(r.text, 'lxml')
-        xsrf = soup.find_all('input',attrs={'name':'_xsrf'})[0].attrs['value']
-        if xsrf:
-            cookies['xsrf'] = xsrf
+        for c in result:
+            if c.startswith('login'):
+                cookies['login'] = c.split('login=')[1]
+            if c.startswith('z_c0'):
+                cookies['z_c0'] = c.split('z_c0=')[1]
+        # r = requests.get(self.url, cookies=cookies, headers=self.headers)
+        # soup = BeautifulSoup(r.text, 'lxml')
+        # xsrf = soup.find_all('input', attrs={'name': '_xsrf'})
+        # if xsrf:
+        #     cookies['xsrf'] = xsrf[0].attrs['value']
         return cookies
 
     def verify_cookie(self):
@@ -43,19 +46,3 @@ class Cookies(object):
             return True
         else:
             return False
-
-if __name__ == '__main__':
-    c = Cookies()
-    headers = {'User-Agent': User_Agent}
-    cookies = c.cookies()
-    headers['authorization'] = 'Bearer ' + cookies['z_c0']
-    r = requests.get(
-        url='https://www.zhihu.com/api/v4/members/zhang-jia-wei/answers?sort_by=created&per_page=5&include=data%5B%2A%5D.is_normal%2Csuggest_edit%2Ccomment_count%2Ccollapsed_counts%2Creviewing_comments_count%2Ccan_comment%2Ccontent%2Cvoteup_count%2Creshipment_settings%2Ccomment_permission%2Cmark_infos%2Ccreated_time%2Cupdated_time%2Crelationship.voting%2Cis_author%2Cis_thanked%2Cis_nothelp%2Cupvoted_followees%3Bdata%5B%2A%5D.author.badge%5B%3F%28type%3Dbest_answerer%29%5D.topics&limit=5&offset=5',
-        headers=headers,
-        cookies=cookies
-    )
-    with open('g.html','w') as f :
-        f.write((r.text).encode('utf-8'))
-    from pprint import pprint
-    result = json.loads(r.text)
-    pprint(json.loads(r.text))
