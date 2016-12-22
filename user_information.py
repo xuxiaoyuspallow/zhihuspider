@@ -10,10 +10,12 @@ class UserInformation(object):
 
     def name(self):
         result = self.soup.find_all('span',class_='ProfileHeader-name')[0].text
+        print result
         return result
 
     def avatar(self):
-        return self.soup.find_all('img',class_='Avatar Avatar--large UserAvatar-inner')[0].attrs['src']
+        result = self.soup.find_all('img',class_='Avatar Avatar--large UserAvatar-inner')[0].attrs['src']
+        return result
 
     def signature(self):
         result = self.soup.find_all('span', class_='RichText ProfileHeader-headline')[0].text

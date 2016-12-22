@@ -16,7 +16,7 @@ class AnswerSnapshots(Base):
     can_comment = Column()
     comment_permission = Column()
     is_normal = Column()
-    reshipment_setting = Column()
+    reshipment_settings = Column()
     author = Column()
     question = Column()
     relationship = Column()
@@ -77,7 +77,7 @@ class QuestionsSnapshots(Base):
 
 
 class UserSnapshots(Base):
-    __table__ = 'user_snapshots'
+    __tablename__ = 'user_snapshots'
 
     id = Column(primary_key=True)
     user_id = Column()
@@ -88,10 +88,10 @@ class UserSnapshots(Base):
     asks_num = Column()
     followers_num = Column()
     followees_num = Column()
-    agree_num = Column()
+    agrees_num = Column()
     thanks_num = Column()
     be_marked = Column()
-    be_collected = Column()
+    be_collected_num = Column()
     edits_num = Column()
     crawl_time = Column()
 

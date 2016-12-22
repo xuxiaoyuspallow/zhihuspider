@@ -20,11 +20,11 @@ CREATE TABLE `answers_snapshots` (
   `relationship` text,
   `suggest_edit` text,
   `type` varchar(255) DEFAULT NULL,
-  `created_time` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  `updated_time` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  `crawl_time` datetime DEFAULT NULL,
+  `created_time` bigint(20) DEFAULT NULL,
+  `updated_time` bigint(20) DEFAULT NULL,
+  `crawl_time` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of answers_snapshots
@@ -46,6 +46,37 @@ CREATE TABLE `manage_information` (
 INSERT INTO `manage_information` VALUES (null, null, 'login=\"ZjY1ODYwYzQyNjdhNDJlZWJlNWIxNTY3MDZhOWE1ODM=|1481856802|6ac738cad77a945f30bdc8577e25a7385dceeeff\";z_c0=Mi4wQUFEQUltRWFBQUFBa01DNWx0MUNDaGNBQUFCaEFsVk5JdVI2V0FBSVMtN3N1SXBxR2NGUVh1eHZkbTlqZWlpTkNR|1482301876|0e2415bed99326f2fd355eb382b14f33326258cb;');
 
 -- ----------------------------
+-- Table structure for posts_snapshots
+-- ----------------------------
+DROP TABLE IF EXISTS `posts_snapshots`;
+CREATE TABLE `posts_snapshots` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `post_id` int(11) DEFAULT NULL,
+  `author` text,
+  `can_comment` text,
+  `collapsed_counts` int(11) DEFAULT NULL,
+  `comment_count` int(11) DEFAULT NULL,
+  `comment_permission` varchar(20) DEFAULT NULL,
+  `excerpt` text,
+  `exerpt_title` text,
+  `image_url` text,
+  `reviewing_comments_count` int(11) DEFAULT NULL,
+  `title` text,
+  `type` varchar(255) DEFAULT NULL,
+  `upvoted_followees` text,
+  `voteup_count` int(11) DEFAULT NULL,
+  `voting` int(11) DEFAULT NULL,
+  `created` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  `updated` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  `crawl_time` bigint(20) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of posts_snapshots
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for questions
 -- ----------------------------
 DROP TABLE IF EXISTS `questions`;
@@ -53,7 +84,7 @@ CREATE TABLE `questions` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `question_id` int(11) NOT NULL,
   `title` text,
-  `crawl_time` datetime DEFAULT NULL,
+  `crawl_time` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -73,10 +104,13 @@ CREATE TABLE `questions_snapshots` (
   `type` varchar(255) DEFAULT NULL,
   `answer_num` int(11) DEFAULT NULL,
   `followers` int(11) DEFAULT NULL,
-  `views_num` int(11) DEFAULT NULL,
+  `recently` varchar(255) DEFAULT NULL,
+  `views_num` int(11) NOT NULL,
+  `topic_follower` int(11) DEFAULT NULL,
   `labels` text,
+  `labels_links` text,
   `content` text,
-  `crawl_time` datetime DEFAULT NULL,
+  `crawl_time` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -6942,7 +6976,7 @@ INSERT INTO `users` VALUES ('6839', '_______\n');
 -- ----------------------------
 DROP TABLE IF EXISTS `user_snapshots`;
 CREATE TABLE `user_snapshots` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` varchar(255) DEFAULT NULL,
   `name` varchar(255) DEFAULT NULL,
   `avatar` text,
@@ -6956,10 +6990,14 @@ CREATE TABLE `user_snapshots` (
   `be_marked` int(11) DEFAULT NULL,
   `be_collected_num` int(11) DEFAULT NULL,
   `edits_num` int(11) DEFAULT NULL,
-  `crawl_time` datetime DEFAULT NULL,
+  `crawl_time` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of user_snapshots
 -- ----------------------------
+INSERT INTO `user_snapshots` VALUES ('1', '------', 'æŽæ€¡é€š', 'https://pic3.zhimg.com/cae87f1da_xl.jpg', '27', '0', '14', '2643', '831', '5889', '1030', '1', '2786', '170', '1482392800');
+INSERT INTO `user_snapshots` VALUES ('2', '------', 'æŽæ€¡é€š', 'https://pic3.zhimg.com/cae87f1da_xl.jpg', '27', '0', '14', '2643', '831', '5889', '1030', '1', '2786', '170', '1482393099');
+INSERT INTO `user_snapshots` VALUES ('3', '------', 'ÀîâùÍ¨', 'https://pic3.zhimg.com/cae87f1da_xl.jpg', '27', '0', '14', '2643', '831', '5889', '1030', '1', '2786', '170', '1482393209');
+INSERT INTO `user_snapshots` VALUES ('4', '------', 'æŽæ€¡é€š', 'https://pic3.zhimg.com/cae87f1da_xl.jpg', '27', '0', '14', '2643', '831', '5889', '1030', '1', '2786', '170', '1482393275');

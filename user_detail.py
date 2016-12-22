@@ -49,11 +49,21 @@ class UserDetail(object):
                 'limit': limit,
                 'offset': i,
             }
-            r = requests.get(answer_api, params=params, headers=self.headers, cookies=self.cookies)
-            result = json.loads(r.text)
-            for data in result['data']:
-                self.answers_queue.put(data)
-        logging.info(u'{id}的回答已爬行完成，总条数为{total}'.format(id=self.id,total=total))
+            try:
+                r = requests.get(answer_api, params=params, headers=self.headers, cookies=self.cookies)
+            except Exception as e:
+                logging.error(e)
+                continue
+            else:
+                result = json.loads(r.text)
+                for data in result['data']:
+                    self.answers_queue.put(data)
+        logging.info(
+            u'{id}的回答已爬行完成，成功条数为{total},失败{fail}'.format(
+                id=self.id,
+                total=self.answers_queue.qsize(),
+                fail=total - self.answers_queue.qsize()
+            ))
         return True
 
     def posts(self,limit):
@@ -79,11 +89,21 @@ class UserDetail(object):
                 'limit': limit,
                 'offset': i,
             }
-            r = requests.get(post_api, params=params, headers=self.headers, cookies=self.cookies)
-            result = json.loads(r.text)
-            for data in result['data']:
-                self.post_queue.put(data)
-        logging.info(u'{id}的文章已爬行完成，总条数为{total}'.format(id=self.id, total=total))
+            try:
+                r = requests.get(post_api, params=params, headers=self.headers, cookies=self.cookies)
+            except Exception as e:
+                logging.error(e)
+                continue
+            else:
+                result = json.loads(r.text)
+                for data in result['data']:
+                    self.post_queue.put(data)
+        logging.info(
+            u'{id}的文章已爬行完成，成功条数为{total},失败{fail}'.format(
+                id=self.id,
+                total=self.post_queue.qsize(),
+                fail=total - self.post_queue.qsize()
+            ))
         return True
 
     def followees(self,limit):
@@ -105,11 +125,21 @@ class UserDetail(object):
                 'limit': limit,
                 'offset': i,
             }
-            r = requests.get(followees_api, params=params, headers=self.headers, cookies=self.cookies)
-            result = json.loads(r.text)
-            for data in result['data']:
-                self.followings_queue.put(data)
-        logging.info(u'{id}的关注的人已爬行完成，总条数为{total}'.format(id=self.id, total=total))
+            try:
+                r = requests.get(followees_api, params=params, headers=self.headers, cookies=self.cookies)
+            except Exception as e:
+                logging.error(e)
+                continue
+            else:
+                result = json.loads(r.text)
+                for data in result['data']:
+                    self.followings_queue.put(data)
+        logging.info(
+            u'{id}的关注的人已爬行完成，成功条数为{total},失败{fail}'.format(
+                id=self.id,
+                total=self.followings_queue.qsize(),
+                fail=total-self.followings_queue.qsize()
+            ))
         return True
 
     def followers(self):
@@ -117,5 +147,5 @@ class UserDetail(object):
 
 if __name__ == '__main__':
     c = Cookies()
-    u = UserDetail('zhang-jia-wei',c.cookies())
-    u.followees(20)
+    u = UserDetail('excited-vczh',c.cookies())
+    u.answers(20)
