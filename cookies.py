@@ -32,7 +32,7 @@ class Cookies(object):
             if c.startswith('z_c0'):
                 cookies['z_c0'] = c.split('z_c0=')[1]
         # r = requests.get(self.url, cookies=cookies, headers=self.headers)
-        # soup = BeautifulSoup(r.text, 'lxml')
+        # soup = BeautifulSoup(r.content, 'lxml')
         # xsrf = soup.find_all('input', attrs={'name': '_xsrf'})
         # if xsrf:
         #     cookies['xsrf'] = xsrf[0].attrs['value']
@@ -41,7 +41,7 @@ class Cookies(object):
     def verify_cookie(self):
         cookies = self.cookies()
         r = requests.get(self.url,cookies=cookies, headers=self.headers)
-        soup = BeautifulSoup(r.text,'lxml')
+        soup = BeautifulSoup(r.content,'lxml')
         if soup.find_all('a', class_='zu-top-nav-userinfo '):
             return True
         else:

@@ -31,9 +31,9 @@ class UserDetail(object):
             'offset': 0,
         }
         r = requests.get(answer_api,params=params, headers=self.headers, cookies=self.cookies)
-        result = json.loads(r.text)
+        result = json.loads(r.content)
         if not result['data']:
-            logging.info(u'{id}没有回答')
+            logging.info(u'{id}没有回答'.format(id=self.id))
             return True
         total = result['paging']['totals']
         for i in range(0,total,limit):
@@ -55,7 +55,7 @@ class UserDetail(object):
                 logging.error(e)
                 continue
             else:
-                result = json.loads(r.text)
+                result = json.loads(r.content)
                 for data in result['data']:
                     self.answers_queue.put(data)
         logging.info(
@@ -74,9 +74,9 @@ class UserDetail(object):
             'offset': 0,
         }
         r = requests.get(post_api, params=params, headers=self.headers, cookies=self.cookies)
-        result = json.loads(r.text)
+        result = json.loads(r.content)
         if not result['data']:
-            logging.info(u'{id}没有文章')
+            logging.info(u'{id}没有文章'.format(id=self.id))
             return True
         total = result['paging']['totals']
         for i in range(0, total, limit):
@@ -95,7 +95,7 @@ class UserDetail(object):
                 logging.error(e)
                 continue
             else:
-                result = json.loads(r.text)
+                result = json.loads(r.content)
                 for data in result['data']:
                     self.post_queue.put(data)
         logging.info(
@@ -113,9 +113,9 @@ class UserDetail(object):
             'offset': 0,
         }
         r = requests.get(followees_api, params=params, headers=self.headers, cookies=self.cookies)
-        result = json.loads(r.text)
+        result = json.loads(r.content)
         if not result['data']:
-            logging.info(u'{id}没有关注的人')
+            logging.info(u'{id}没有关注的人'.format(id=self.id))
             return True
         total = result['paging']['totals']
         for i in range(0, total, limit):
@@ -131,7 +131,7 @@ class UserDetail(object):
                 logging.error(e)
                 continue
             else:
-                result = json.loads(r.text)
+                result = json.loads(r.content)
                 for data in result['data']:
                     self.followings_queue.put(data)
         logging.info(

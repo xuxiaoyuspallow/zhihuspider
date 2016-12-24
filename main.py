@@ -11,6 +11,8 @@ data-flow:
 import time
 import threading
 import Queue
+import logging
+import json
 
 import requests
 from sqlalchemy import create_engine
@@ -20,9 +22,11 @@ from cookies import Cookies
 from user_information import UserInformation
 from user_detail import UserDetail
 from config import DB_CONFIG, User_Agent
+from config import New_User
 from models import Users, UserSnapshots
 from models import AnswerSnapshots, PostsSnapshots
-from models import Questions
+from models import Questions, QuestionsSnapshots
+from question import Question
 
 
 engine = create_engine(
@@ -35,23 +39,21 @@ engine = create_engine(
 session = sessionmaker(bind=engine)()
 
 
-class Main(object):
-    def __init__(self,user_id, cookies):
+class Main(threading.Thread):
+    def __init__(self, cookies):
         super(Main, self).__init__()
-        self.id = user_id
         self.cookies = cookies
-        self.user_detail = UserDetail(user_id,cookies)
         self.headers = {
             'User-Agent': User_Agent
         }
 
-    def user_snapshots(self):
-        user_snapshot_url = 'http://www.zhihu.com/people/{id}'.format(id=self.id)
+    def user_snapshots(self,user_id):
+        user_snapshot_url = 'http://www.zhihu.com/people/{id}'.format(id=user_id)
         r = requests.get(user_snapshot_url, headers=self.headers,cookies=self.cookies)
-        user_info = UserInformation(r.text)
+        user_info = UserInformation(r.content)
         us = UserSnapshots(
             id=0,
-            user_id=self.id,
+            user_id=user_id,
             name=user_info.name(),
             avatar=user_info.avatar(),
             answers_num=user_info.answer(),
@@ -66,6 +68,7 @@ class Main(object):
             edits_num=user_info.logs(),
             crawl_time=int(time.time())
         )
+        logging.info("adding usersnapshot")
         session.add(us)
         session.commit()
 
@@ -90,56 +93,142 @@ class Main(object):
             updated_time=data['updated_time'],
             crawl_time=int(time.time())
         )
+        logging.info("adding answersnapshot")
         session.add(an_s)
         session.commit()
 
     def questions(self,data):
-        if_exit = session.query(Questions.question_id).filter(Questions.question_id==self.id).scalar()
-        if if_exit:
-            pass
+        if_exit = session.query(Questions.question_id).filter(Questions.question_id==data['id']).scalar()
+        if not if_exit:
+            q = Questions(
+                id=0,
+                question_id=data['id'],
+                title=data['title'],
+                crawl_time=int(time.time())
+            )
+            logging.info("adding question")
+            session.add(q)
+            session.commit()
 
     def question_snapshots(self,data):
-        pass
+        url = 'http://www.zhihu.com/question/{id}'.format(id=data['id'])
+        try:
+            r = requests.get(url, cookies=self.cookies, headers=self.headers)
+        except Exception as e:
+            logging.error(e)
+            return
+        else:
+            q = Question(r.content)
+            followers = q.follower()
+            views_num = q.viewer()
+            answer_num = q.answer()
+            if not answer_num or not views_num or not followers:
+                return
+            q_s = QuestionsSnapshots(
+                id=0,
+                question_id=data['id'],
+                question_type=data['type'],
+                title=data['title'],
+                type=data['type'],
+                answer_num=answer_num,
+                followers=followers,
+                recently=q.recently(),
+                views_num=views_num,
+                topic_follower=q.topic_followers(),
+                labels=q.label(),
+                labels_links=q.labels_links(),
+                content=q.content(),
+                crawl_time=int(time.time())
+            )
+            logging.info("adding questionsnapshot")
+            session.add(q_s)
+            session.commit()
 
     def posts_snapshots(self,data):
-        pass
+        p_s = PostsSnapshots(
+            id=0,
+            post_id=data['id'],
+            author=json.dumps(data['author']),
+            can_comment=json.dumps('can_comment'),
+            collapsed_counts=data['collapsed_counts'],
+            comment_count=data['comment_count'],
+            comment_permission=data['comment_permission'],
+            excerpt=data['excerpt'],
+            excerpt_title=data['excerpt_title'],
+            image_url=data['image_url'],
+            reviewing_comments_count=data['reviewing_comments_count'],
+            title=data['title'],
+            type=data['type'],
+            upvoted_followees=json.dumps(data['upvoted_followees']),
+            voteup_count=data['voteup_count'],
+            voting=data['voting'],
+            created=data['created'],
+            updated=data['updated'],
+            crawl_time=int(time.time())
+        )
+        logging.info("adding postsnapshot")
+        session.add(p_s)
+        session.commit()
 
     def user(self,data):
-        pass
+        """"""
+        if_exit = session.query(Users.user_id).filter(Users.user_id == data['url_token']).scalar()
+        if not if_exit:
+            try:
+                url = 'http://www.zhihu.com/people/{id}'.format(id=data['url_token'])
+                r = requests.get(url,cookies=self.cookies,headers=self.headers)
+            except Exception as e:
+                logging.error(e)
+                return
+            else:
+                u_i = UserInformation(r.content)
+                if u_i.follower() >= New_User['followers'] and u_i.agree() >= New_User['agree'] and u_i.answer() >= New_User['answer']:
+                    u = Users(
+                        id=0,
+                        user_id=data['url_token']
+                    )
+                    logging.info("adding user")
+                    session.add(u)
+                    session.commit()
 
-    def start(self):
-        self.user_snapshots()
-        self.user_detail.answers(20)
-        # self.user_detail.posts(20)
-        # self.user_detail.followees(20)
-        while not self.user_detail.answers_queue.empty():
-            data = self.user_detail.answers_queue.get()
-            self.answers_snapshot(data)
-            self.question_snapshots(data['question'])
-            self.questions(data['question'])
-        while not self.user_detail.post_queue.empty():
-            data = self.user_detail.post_queue.get()
-            self.posts_snapshots(data)
-        while not self.user_detail.followings_queue.empty():
-            data = self.user_detail.followings_queue.get()
-            self.user(data)
+    def run(self):
+        while not task_queue.empty():
+            task = task_queue.get()
+            self.user_snapshots(task)
+            user_detail = UserDetail(task,self.cookies)
+            user_detail.answers(20)
+            user_detail.posts(20)
+            user_detail.followees(20)
+            while not user_detail.answers_queue.empty():
+                data = user_detail.answers_queue.get()
+                self.answers_snapshot(data)
+                logging.info("adding answersnapshot")
+                self.questions(data['question'])
+                # self.question_snapshots(data['question'])
+            while not user_detail.post_queue.empty():
+                data = user_detail.post_queue.get()
+                self.posts_snapshots(data)
+            while not user_detail.followings_queue.empty():
+                data = user_detail.followings_queue.get()
+                self.user(data)
 
 
 if __name__ == '__main__':
-    c = Cookies()
-    if c.verify_cookie():
-        cookies = c.cookies()
-    else:
-        import sys
-        sys.exit()
-    tasks = session.query(Users).all()
-    task_queue = Queue.Queue()
-    for task in tasks:
-        task_queue.put(task.user_id.strip())
-    for i in range(1):
-        while not task_queue.empty():
-            m = Main(task_queue.get(),cookies)
-            t = threading.Thread(target=m.start)
+    while True:
+        c = Cookies()
+        if c.verify_cookie():
+            cookies = c.cookies()
+        else:
+            import sys
+            sys.exit()
+        tasks = session.query(Users).all()
+        task_queue = Queue.Queue()
+        for task in tasks:
+            task_queue.put(task.user_id.strip())
+        THREAD = []
+        for i in range(10):
+            t = Main(cookies)
             t.start()
+            THREAD.append(t)
+        for t in THREAD:
             t.join()
-            del t

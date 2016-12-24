@@ -1,5 +1,8 @@
 # coding=utf-8
 import re
+import json
+import logging
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -9,46 +12,68 @@ from cookies import Cookies
 
 class Question(object):
     def __init__(self, html):
+        self.html = html
         self.soup = BeautifulSoup(html,'lxml')
 
     def answer(self):
-        result = re.search(r'\d+',self.soup.select('#zh-question-answer-num')[0].text)
-        return int(result)
+        try:
+            result = re.search(r'\d+',self.soup.select('#zh-question-answer-num')[0].text).group(0)
+            return int(result)
+        except Exception as e:
+            logging.error(e)
 
     def follower(self):
-        result = re.search(r'\d+',self.soup.find_all('div',class_='zg-gray-normal')[0].text).group(0)
-        return int(result)
+        try:
+            result = re.search(r'\d+',self.soup.find_all('div',class_='zg-gray-normal')[0].text).group(0)
+            return int(result)
+        except Exception as e:
+            logging.error(e)
+            return
 
     def viewer(self):
-        result = re.findall(r'\d+', self.soup.find_all('div', class_='zg-gray-normal')[2].text)
-        return int(result[0])
+        try:
+            result = re.findall(r'\d+', self.soup.find_all('div', class_='zg-gray-normal')[2].text)
+            return int(result[0])
+        except Exception as e:
+            logging.error(e)
 
     def topic_followers(self):
-        result = re.findall(r'\d+',self.soup.find_all('div',class_='zg-gray-normal')[2].text)
-        return int(result[1])
+        try:
+            result = re.findall(r'\d+',self.soup.find_all('div',class_='zg-gray-normal')[2].text)
+            return int(result[1])
+        except Exception as e:
+            logging.error(e)
 
     def recently(self):
-        result = self.soup.find_all('span',class_='time')[0].text
-        return result
+        try:
+            result = self.soup.find_all('span',class_='time')[0].text
+            return result
+        except Exception as e:
+            logging.error(e)
 
     def label(self):
+        # todo: unicode 编码
         tags = self.soup.find_all('a', class_='zm-item-tag')
         result = []
         for tag in tags:
             result.append(tag.text.strip())
-        return result
+        return json.dumps(result)
 
     def labels_links(self):
+        # todo: unicode 编码
         links = self.soup.find_all('a', class_='zm-item-tag')
         result = []
         for link in links:
             temp = {link.text.strip(): link.attrs['href']}
             result.append(temp)
-        return result
+        return json.dumps(result)
 
     def content(self):
-        c = self.soup.select('#zh-question-detail')[0].text
-        return c.strip() if not u'写补充说明' == c.strip() else None
+        try:
+            c = self.soup.select('#zh-question-detail')[0].text
+            return c.strip() if not u'写补充说明' == c.strip() else None
+        except Exception as e:
+            logging.error(e)
 
 
 
@@ -59,8 +84,8 @@ if __name__ == '__main__':
     }
     c = Cookies()
     cookies = c.cookies()
-    url = 'http://www.zhihu.com/question/19614805'
+    url = 'http://www.zhihu.com/question/20552556'
     r = requests.get(url,headers=headers,cookies=cookies)
-    q = Question(r.text)
-    print q.content()
+    q = Question(r.content)
+    print q.follower()
 

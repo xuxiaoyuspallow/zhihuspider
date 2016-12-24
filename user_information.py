@@ -10,7 +10,6 @@ class UserInformation(object):
 
     def name(self):
         result = self.soup.find_all('span',class_='ProfileHeader-name')[0].text
-        print result
         return result
 
     def avatar(self):

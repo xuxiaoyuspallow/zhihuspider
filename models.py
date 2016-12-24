@@ -70,8 +70,11 @@ class QuestionsSnapshots(Base):
     type = Column()
     answer_num = Column()
     followers = Column()
+    recently = Column()
     views_num = Column()
+    topic_follower = Column()
     labels = Column()
+    labels_links = Column()
     content = Column()
     crawl_time = Column()
 
